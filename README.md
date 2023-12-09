@@ -58,6 +58,9 @@ Outputs
 How to Deploy
 
     Clone the repository: git clone <repository-url>  
+    
     Navigate to the project folder: cd <project-folder>
+    
     Deploy the CloudFormation stack:
+    
       - aws cloudformation create-stack --stack-name <stack-name> --template-body file://template.yaml --parameters ParameterKey=LabVpcCidr,ParameterValue=<vpc-cidr> ...
