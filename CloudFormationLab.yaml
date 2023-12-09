@@ -1,0 +1,402 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: My CloudFormation Portfolio
+
+# VPC with public, private subnet and Internet Gateway, also a NATgateway
+
+Parameters:
+
+  LabVpcCidr:
+    Type: String
+    Default: 10.0.0.0/20
+
+  PublicSubnetCidr:
+    Type: String
+    Default: 10.0.0.0/24
+  
+  PublicSubnetBCidr:
+    Type: String
+    Default: 10.0.2.0/24
+
+  PrivateSubnetCidr:
+    Type: String
+    Default: 10.0.1.0/24
+  
+  PrivateSubnetBCidr:
+    Type: String
+    Default: 10.0.3.0/24
+
+  AmazonLinuxAMIID:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
+
+
+Resources:
+
+###########
+# VPC with Internet Gateway
+###########
+
+  LabVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref LabVpcCidr
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: Lab VPC
+
+  IGW:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: Lab IGW
+
+  VPCtoIGWConnection:
+    Type: AWS::EC2::VPCGatewayAttachment
+    DependsOn:
+      - IGW
+      - LabVPC
+    Properties:
+      InternetGatewayId: !Ref IGW
+      VpcId: !Ref LabVPC
+
+###########
+# Nat Gateway
+###########
+
+  MyNatGatewayEIP:
+    Type: 'AWS::EC2::EIP'
+
+  MyNatGateway:
+    Type: 'AWS::EC2::NatGateway'
+    Properties:
+      AllocationId: !GetAtt MyNatGatewayEIP.AllocationId
+      SubnetId: !Ref PublicSubnet
+      Tags:
+        - Key: Name
+          Value: Lab NatGateway
+
+###########
+# Public Route Table
+###########
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    DependsOn: LabVPC
+    Properties:
+      VpcId: !Ref LabVPC
+      Tags:
+        - Key: Name
+          Value: Public Route Table
+
+  PublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn:
+      - PublicRouteTable
+      - IGW
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref IGW
+      RouteTableId: !Ref PublicRouteTable
+
+###########
+# Private Route Table
+###########
+
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    DependsOn: LabVPC
+    Properties:
+      VpcId: !Ref LabVPC
+      Tags:
+        - Key: Name
+          Value: Private Route Table
+
+  PrivateRoute:
+    Type: AWS::EC2::Route
+    DependsOn:
+      - PrivateRouteTable
+      - MyNatGateway
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref MyNatGateway
+      RouteTableId: !Ref PrivateRouteTable
+
+###########
+# Public Subnet
+###########
+
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    DependsOn: LabVPC
+    Properties:
+      VpcId: !Ref LabVPC
+      MapPublicIpOnLaunch: true
+      CidrBlock: !Ref PublicSubnetCidr
+      AvailabilityZone: !Select 
+        - 0
+        - !GetAZs 
+          Ref: AWS::Region
+      Tags:
+        - Key: Name
+          Value: Public Subnet
+  
+  PublicSubnetB:
+    Type: AWS::EC2::Subnet
+    DependsOn: LabVPC
+    Properties:
+      VpcId: !Ref LabVPC
+      CidrBlock: !Ref PublicSubnetBCidr
+      MapPublicIpOnLaunch: true
+      AvailabilityZone: !Select 
+        - 1
+        - !GetAZs 
+          Ref: AWS::Region
+      Tags:
+        - Key: Name
+          Value: Public Subnet B
+
+  PublicRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    DependsOn:
+      - PublicRouteTable
+      - PublicSubnet
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet
+
+  PublicRouteTableAssociationB:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    DependsOn:
+      - PublicRouteTable
+      - PublicSubnetB
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnetB
+
+
+###########
+# Private Subnet
+###########
+
+  PrivateSubnet:
+    Type: AWS::EC2::Subnet
+    DependsOn: LabVPC
+    Properties:
+      VpcId: !Ref LabVPC
+      MapPublicIpOnLaunch: false
+      CidrBlock: !Ref PrivateSubnetCidr
+      AvailabilityZone: !Select 
+        - 0
+        - !GetAZs 
+          Ref: AWS::Region
+      Tags:
+        - Key: Name
+          Value: private Subnet
+  
+  PrivateSubnetB:
+    Type: AWS::EC2::Subnet
+    DependsOn: LabVPC
+    Properties:
+      VpcId: !Ref LabVPC
+      CidrBlock: !Ref PrivateSubnetBCidr
+      MapPublicIpOnLaunch: false
+      AvailabilityZone: !Select 
+        - 1
+        - !GetAZs 
+          Ref: AWS::Region
+      Tags:
+        - Key: Name
+          Value: Private Subnet B'
+
+  PrivateRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    DependsOn:
+      - PrivateRouteTable
+      - PrivateSubnet
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      SubnetId: !Ref PrivateSubnet
+
+  PrivateRouteTableAssociationB:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    DependsOn:
+      - PrivateRouteTable
+      - PrivateSubnetB
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      SubnetId: !Ref PrivateSubnetB
+
+    
+###########
+# DataBase Subnet Group
+###########
+# Define a subnet group for the RDS instance
+  MyDBSubnetGroup:
+    Type: 'AWS::RDS::DBSubnetGroup'
+    Properties:
+      DBSubnetGroupDescription: 'Subnet group for RDS'
+      SubnetIds:
+        - !Ref PublicSubnet  # Reference to the public subnet
+        - !Ref PublicSubnetB  # Reference to the public subnet B
+        - !Ref PrivateSubnet  # Reference to the private subnet
+        - !Ref PrivateSubnetB  # Reference to the private subnetB
+
+###########
+# App Security Group
+###########
+
+  AppSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    DependsOn: LabVPC
+    Properties:
+      GroupName: App
+      GroupDescription: Enable access to App
+      VpcId: !Ref LabVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: App
+
+###########
+# Relation Database Security Group
+###########
+# Define the security group for the RDS instance
+  MyDBSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: 'Security group for RDS instance'
+      VpcId: !Ref LabVPC  # Reference to your VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          CidrIp: '0.0.0.0/0'  # Allow traffic from any IP (adjust for security)
+
+###########
+# S3 Bucket
+###########
+
+  MyS3Bucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: my-ahmed-s3-bucket-123
+      AccessControl: Private
+
+###########
+# EC2 Creation
+###########
+
+  MyEC2Instance:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      ImageId: !Ref AmazonLinuxAMIID  # Amazon Linux 2 AMI
+      InstanceType: t3.micro          # Type of instance 
+      UserData: !Base64 |
+        #!/bin/bash
+        sudo su
+        yum update -y
+        yum install -y httpd
+        systemctl start httpd
+        systemctl enable httpd
+
+      SecurityGroupIds: 
+        - !Ref AppSecurityGroup # Replace with your Security Group ID
+      SubnetId: !Ref PublicSubnet  # Replace with your Subnet ID
+      Tags:
+        - Key: Name
+          Value: Web Server
+      BlockDeviceMappings:
+        - DeviceName: /dev/sda1
+          Ebs:
+            VolumeSize: 8
+            VolumeType: gp2
+
+###########
+# RDS Creation
+###########
+# Define the RDS instance
+  MyDBInstance:
+    Type: 'AWS::RDS::DBInstance'
+    Properties:
+      Engine: 'aurora'  # Choose the appropriate database engine
+      MasterUsername: 'admin'
+      MasterUserPassword: 'YourSecurePassword'  # Replace with a secure password
+      DBInstanceIdentifier: 'MyDBInstance'
+      AllocatedStorage: 20
+      DBInstanceClass: 'db.t2.small'
+      EngineVersion: '3.05.1'  # Engine version for MySQL or Aurora
+      DBSubnetGroupName: !Ref MyDBSubnetGroup  # Reference to the subnet group
+      VPCSecurityGroups:
+        - !Ref MyDBSecurityGroup  # Reference to the security group
+
+###########
+# SNS Topic
+###########
+
+  MySNSTopic:
+    Type: 'AWS::SNS::Topic'
+    Properties:
+      DisplayName: 'My SNS Topic'
+      TopicName: 'MySNSTopic'
+
+###########
+# SNS Subscription
+###########
+
+  MySNSEmailSubscription:
+    Type: 'AWS::SNS::Subscription'
+    Properties:
+      Protocol: 'email'
+      TopicArn: !Ref MySNSTopic
+      Endpoint: 'amohamed.0816@gmail.com'
+    
+###########
+# CloudWatch
+###########
+
+  MyCloudWatchAlarm:
+    Type: 'AWS::CloudWatch::Alarm'
+    Properties:
+      AlarmName: 'MyEC2InstanceCpuAlarm'
+      ComparisonOperator: 'GreaterThanThreshold'
+      EvaluationPeriods: 1
+      MetricName: 'CPUUtilization'
+      Namespace: 'AWS/EC2'
+      Period: 60  # 1 minutes
+      Statistic: 'Average'
+      Threshold: 90
+      ActionsEnabled: true
+      AlarmActions: 
+        - !Ref MySNSTopic  # Specify the ARN of your SNS topic for notification
+      Dimensions:
+        - Name: 'InstanceId'
+          Value: !Ref MyEC2Instance
+    
+  
+###########
+# Outputs
+###########
+
+Outputs:
+
+  LabVPCDefaultSecurityGroup:
+    Value: !Sub ${LabVPC.DefaultSecurityGroup}
+
+  S3BucketName:
+    Value: !Ref MyS3Bucket
+    Description: 'The name of the S3 bucket'
+
+  EC2InstanceId:
+    Value: !Ref MyEC2Instance
+    Description: 'The ID of the EC2 instance'
+
+  RDSInstanceEndpoint:
+    Description: 'Endpoint of the created RDS instance'
+    Value: !GetAtt MyDBInstance.Endpoint.Address
