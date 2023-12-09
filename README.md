@@ -4,6 +4,10 @@ Overview:
 
 This CloudFormation template creates a robust AWS infrastructure portfolio, encompassing a Virtual Private Cloud (VPC) with public and private subnets, an internet gateway, a NAT gateway, security groups, an EC2 instance, an S3 bucket, an RDS instance, and associated resources.
 
+Diagram:
+
+![CloudFormation Template drawio](https://github.com/Amohamed0816/AWS-CloudFormation/assets/127431316/aaadcc44-bdca-43a3-b4c6-e68ffbda86e9)
+
 Prerequisites
 
     AWS Account: You need an AWS account to deploy this CloudFormation template.
