@@ -1,4 +1,5 @@
 AWS CloudFormation Portfolio
+
 Overview:
 This CloudFormation template creates a robust AWS infrastructure portfolio, encompassing a Virtual Private Cloud (VPC) with public and private subnets, an internet gateway, a NAT gateway, security groups, an EC2 instance, an S3 bucket, an RDS instance, and associated resources.
 
