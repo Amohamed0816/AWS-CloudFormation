@@ -355,7 +355,7 @@ Resources:
     Properties:
       Protocol: 'email'
       TopicArn: !Ref MySNSTopic
-      Endpoint: 'amohamed.0816@gmail.com'
+      Endpoint: '???@gmail.com' #Add your own email to get the SNS notification
     
 ###########
 # CloudWatch
