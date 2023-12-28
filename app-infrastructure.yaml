@@ -234,6 +234,7 @@ Resources:
 # DataBase Subnet Group
 ###########
 # Define a subnet group for the RDS instance
+
   MyDBSubnetGroup:
     Type: 'AWS::RDS::DBSubnetGroup'
     Properties:
@@ -286,7 +287,7 @@ Resources:
   MyS3Bucket:
     Type: 'AWS::S3::Bucket'
     Properties:
-      BucketName: my-ahmed-s3-bucket-123
+      BucketName: my-ahmed-s3-bucket-12344
       AccessControl: Private
 
 ###########
@@ -323,18 +324,18 @@ Resources:
 ###########
 # Define the RDS instance
   MyDBInstance:
-    Type: 'AWS::RDS::DBInstance'
+    Type: "AWS::RDS::DBInstance"
     Properties:
-      Engine: 'aurora'  # Choose the appropriate database engine
-      MasterUsername: 'admin'
-      MasterUserPassword: 'YourSecurePassword'  # Replace with a secure password
-      DBInstanceIdentifier: 'MyDBInstance'
-      AllocatedStorage: 20
-      DBInstanceClass: 'db.t2.small'
-      EngineVersion: '3.05.1'  # Engine version for MySQL or Aurora
-      DBSubnetGroupName: !Ref MyDBSubnetGroup  # Reference to the subnet group
-      VPCSecurityGroups:
-        - !Ref MyDBSecurityGroup  # Reference to the security group
+      AllocatedStorage: "20"
+      DBInstanceClass: "db.t2.micro"
+      Engine: "mysql"
+      EngineVersion: "5.7"
+      MasterUsername: "admin"
+      MasterUserPassword: "password"
+      MultiAZ: true
+      DBSubnetGroupName: !Ref MyDBSubnetGroup
+      VPCSecurityGroups: 
+        - !Ref MyDBSecurityGroup
 
 ###########
 # SNS Topic
@@ -355,7 +356,7 @@ Resources:
     Properties:
       Protocol: 'email'
       TopicArn: !Ref MySNSTopic
-      Endpoint: '???@gmail.com' #Add your own email to get the SNS notification
+      Endpoint: 'amohamed.0816@gmail.com'
     
 ###########
 # CloudWatch
