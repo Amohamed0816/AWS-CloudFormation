@@ -3,9 +3,9 @@
 
 ## Overview
 
-This project demonstrates the deployment of a high-availability web application on Amazon Web Services (AWS) using CloudFormation templates. The architecture includes an Application Load Balancer (ALB), Amazon RDS for a database, AWS WAF for web application firewall, and EC2 instances distributed across multiple availability zones.
+This project demonstrates the deployment of a high-availability web application on Amazon Web Services (AWS) using CloudFormation templates. The architecture includes an Application Load Balancer (ALB), Amazon RDS for a database, AWS WAF for a web application firewall, and EC2 instances distributed across multiple availability zones.
 
-##Design
+## Design
 
 ![image](https://github.com/Amohamed0816/AWS-CloudFormation/assets/127431316/c4ca2ad2-76ff-4ef4-8204-22c9f377c52c)
 
