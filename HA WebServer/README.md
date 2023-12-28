@@ -1,5 +1,5 @@
 
-# High Availability AWS Web Application with WAF
+# Capstone Project: High Availability AWS Web Application with WAF
 
 ## Overview
 
