@@ -279,7 +279,7 @@ Resources:
   MyS3Bucket:
     Type: 'AWS::S3::Bucket'
     Properties:
-      BucketName: my-ahmed-s3-bucket-123
+      BucketName: makeyourowns3bucketname123
       AccessControl: Private
 
 # Outputs
