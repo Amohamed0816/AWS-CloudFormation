@@ -53,7 +53,3 @@ The templates can be easily customized to adapt to specific requirements, such a
 ## Future Enhancements
 
 Future enhancements could include the integration of additional AWS services, continuous integration and deployment (CI/CD) pipelines, and monitoring solutions for better insights into the application's performance.
-
----
-
-Feel free to tailor this overview to your specific project details and preferences.
