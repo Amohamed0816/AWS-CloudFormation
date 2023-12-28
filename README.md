@@ -1,6 +1,3 @@
-Absolutely! Let's add a personal touch and express your enthusiasm for continuous learning and future additions:
-
----
 
 # AWS CloudFormation Repository
 
