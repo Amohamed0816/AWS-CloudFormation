@@ -6,11 +6,11 @@ Absolutely! Let's add a personal touch and express your enthusiasm for continuou
 
 Hello there! 👋 Welcome to my AWS CloudFormation Repository—a space where technology meets joy! 🚀 This collection of AWS CloudFormation templates and configurations is designed not only for showcasing various infrastructure deployments but also to share my passion for cloud technologies.
 
-## [AWS-CloudFormation/app-infrastructure](app-infrastructure)
+## [App-Infrastructure](AWS-CloudFormation/App-Infrastructure)
 
 **Overview:** Dive into the world of AWS infrastructure with a smile! Deploy a basic AWS setup that not only demonstrates Infrastructure as Code (IaC) and AWS service integration but also embraces best practices for scalability and security.
 
-## [AWS-CloudFormation.ha-webserver](ha-webserver)
+## [HA-webserver](AWS-CloudFormation/ha-webserver)
 
 **Overview:** Elevate your AWS journey with high-fives! 🌟 Deploy a high-availability web application on AWS using CloudFormation templates. This project goes beyond the basics, featuring an Application Load Balancer (ALB), Amazon RDS for a robust database, AWS WAF for web application security, and EC2 instances spread across multiple availability zones.
 
