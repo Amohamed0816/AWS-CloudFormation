@@ -10,7 +10,7 @@ Hello there! 👋 Welcome to my AWS CloudFormation Repository—a space where te
 
 **Overview:** Dive into the world of AWS infrastructure with a smile! Deploy a basic AWS setup that not only demonstrates Infrastructure as Code (IaC) and AWS service integration but also embraces best practices for scalability and security.
 
-## [HA-webserver](HA-webserver)
+## [High Available Web Application](HighA-WebApp)
 
 **Overview:** Elevate your AWS journey with high-fives! 🌟 Deploy a high-availability web application on AWS using CloudFormation templates. This project goes beyond the basics, featuring an Application Load Balancer (ALB), Amazon RDS for a robust database, AWS WAF for web application security, and EC2 instances spread across multiple availability zones.
 
