@@ -28,7 +28,7 @@ The architecture of the project is designed to ensure high availability, fault t
 
 - **WAF Integration:** AWS WAF is employed to protect against web application attacks and provides an additional layer of security.
 
-- **S3 Bucket:** Used for storing and managing static assets.
+- **S3 Bucket:** Used for storing and managing static assets (Make sure to name your own S3 Bucket in the template).
 
 ## Deployment
 
