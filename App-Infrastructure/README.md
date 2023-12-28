@@ -1,78 +1,53 @@
-AWS CloudFormation Portfolio
+# Capstone Project: AWS Cloud Infrastructure Deployment
 
-Capstone Application CloudFormation Template
+## Overview
 
-Overview
+This Capstone Project showcases the deployment of a basic AWS infrastructure using CloudFormation, designed as part of a job application portfolio. The project aims to demonstrate proficiency in Infrastructure as Code (IaC), AWS service integration, and best practices for creating a scalable and secure environment.
 
-This CloudFormation template is designed as part of a capstone project for a job application, showcasing the creation of a basic AWS infrastructure. The template leverages AWS services to set up a Virtual Private Cloud (VPC) with public and private subnets, an internet gateway, a Network Address Translation (NAT) gateway, Amazon RDS (Relational Database Service), an EC2 instance, an S3 bucket, and additional components.
-
-Diagram:
+## Design
 
 ![CloudFormation Template drawio](https://github.com/Amohamed0816/AWS-CloudFormation/assets/127431316/aaadcc44-bdca-43a3-b4c6-e68ffbda86e9)
 
-Key Components
+## Architecture
 
-    VPC Setup:
-        Creates a VPC with a specified CIDR block, enabling DNS support and hostnames.
-        Establishes an internet gateway and attaches it to the VPC for public internet access.
-        Configures two public subnets and two private subnets across multiple Availability Zones (AZs).
+- **Virtual Private Cloud (VPC):** Establishes a VPC with public and private subnets, internet gateway, and NAT gateway to create a secure and scalable network architecture.
 
-    NAT Gateway:
-        Allocates an Elastic IP (EIP) for the NAT gateway.
-        Deploys a NAT gateway in the public subnet to enable private instances to access the internet.
+- **Amazon RDS (Relational Database Service):** Sets up an RDS instance with the MySQL engine (version 5.7), demonstrating the configuration of a reliable and managed database solution.
 
-    Route Tables:
-        Creates public and private route tables for associating with the corresponding subnets.
-        Configures routes, directing public traffic to the internet via the internet gateway and private traffic through the NAT gateway.
+- **Amazon S3 Bucket:** Creates a private S3 bucket with specified access controls, showcasing object storage and data management capabilities.
 
-    Security Groups:
-        Defines security groups for applications (AppSecurityGroup) and relational databases (MyDBSecurityGroup).
-        Configures ingress rules to control traffic access for the specified ports.
+- **EC2 Instance:** Launches an EC2 instance with Amazon Linux 2 AMI, demonstrating the deployment of a web server using user data scripts.
 
-    Amazon RDS (Relational Database Service):
-        Launches an RDS instance with MySQL engine, version 5.7, in the specified subnets.
-        Configures a DB subnet group for the RDS instance.
+- **Monitoring and Notifications:** Utilizes CloudWatch Alarms to monitor the EC2 instance's CPU utilization, with notifications sent via Amazon SNS (Simple Notification Service) for threshold breaches.
 
-    S3 Bucket:
-        Creates a private S3 bucket with the specified name and access control settings.
+## How to Use
 
-    EC2 Instance:
-        Launches an EC2 instance with Amazon Linux 2 AMI in the public subnet.
-        Configures the instance with a simple user data script, installing and starting an Apache web server.
+1. **Deployment:**
+   - Deploy the CloudFormation template using the AWS Management Console, AWS CLI, or other tools.
+   - Customize parameters such as VPC CIDR, subnet CIDRs, and other inputs during deployment.
 
-    SNS Topic and Subscription:
-        Establishes an SNS topic named 'MySNSTopic.'
-        Subscribes an email address ('amohamed.0816@gmail.com') to receive notifications from the SNS topic.
+2. **Accessing Resources:**
+   - Access deployed resources like the EC2 instance, RDS instance, and S3 bucket based on specific application requirements.
 
-    CloudWatch Alarm:
-        Sets up a CloudWatch alarm monitoring the CPU utilization of the EC2 instance.
-        Configures the alarm to send notifications to the specified SNS topic when the threshold is breached.
+3. **Monitoring:**
+   - Monitor the EC2 instance's CPU utilization through the configured CloudWatch alarm.
 
-Instructions for Use
+## Important Notes
 
-    Deploying the Template:
-        Use the AWS Management Console, AWS CLI, or other tools to deploy the CloudFormation template.
-        Define necessary parameters like VPC CIDR, subnet CIDRs, and other inputs during deployment.
+- Ensure proper AWS credentials and permissions for successful template deployment.
+- Customize parameters to align with specific use cases.
+- Refer to the CloudFormation documentation for detailed information on template parameters and resource configurations.
 
-    Accessing Resources:
-        Access the deployed resources such as the EC2 instance, RDS instance, and S3 bucket based on your application requirements.
+## Contributing
 
-    Monitoring and Notifications:
-        Monitor the EC2 instance's CPU utilization through the CloudWatch alarm.
-        Receive email notifications for CPU threshold breaches through the configured SNS topic.
+Contributions and improvements to this project are welcome. Feel free to open issues or pull requests.
 
-Important Notes
+## License
 
-    Ensure that AWS credentials and necessary permissions are set up for successful template deployment.
-    Customize parameters as needed for your specific use case.
-    Refer to the CloudFormation documentation for more details on template parameters and resource configurations.
+This project is licensed under the [MIT License](LICENSE).
 
-How to Deploy
+---
 
-    Clone the repository: git clone <repository-url>  
-    
-    Navigate to the project folder: cd <project-folder>
-    
-    Deploy the CloudFormation stack:
-    
-      - aws cloudformation create-stack --stack-name <stack-name> --template-body file://template.yaml --parameters ParameterKey=LabVpcCidr,ParameterValue=<vpc-cidr> ...
+Feel free to adjust the wording or structure to better suit your preferences and the specific details of your project.
+
+
