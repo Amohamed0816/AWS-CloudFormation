@@ -1,63 +1,71 @@
 AWS CloudFormation Portfolio
 
-Overview:
+Capstone Application CloudFormation Template
 
-This CloudFormation template creates a robust AWS infrastructure portfolio, encompassing a Virtual Private Cloud (VPC) with public and private subnets, an internet gateway, a NAT gateway, security groups, an EC2 instance, an S3 bucket, an RDS instance, and associated resources.
+Overview
+
+This CloudFormation template is designed as part of a capstone project for a job application, showcasing the creation of a basic AWS infrastructure. The template leverages AWS services to set up a Virtual Private Cloud (VPC) with public and private subnets, an internet gateway, a Network Address Translation (NAT) gateway, Amazon RDS (Relational Database Service), an EC2 instance, an S3 bucket, and additional components.
 
 Diagram:
 
 ![CloudFormation Template drawio](https://github.com/Amohamed0816/AWS-CloudFormation/assets/127431316/aaadcc44-bdca-43a3-b4c6-e68ffbda86e9)
 
-Prerequisites
+Key Components
 
-    AWS Account: You need an AWS account to deploy this CloudFormation template.
-    AWS CLI: Install the AWS Command Line Interface to deploy the template from your local machine.
+    VPC Setup:
+        Creates a VPC with a specified CIDR block, enabling DNS support and hostnames.
+        Establishes an internet gateway and attaches it to the VPC for public internet access.
+        Configures two public subnets and two private subnets across multiple Availability Zones (AZs).
 
-Parameters
+    NAT Gateway:
+        Allocates an Elastic IP (EIP) for the NAT gateway.
+        Deploys a NAT gateway in the public subnet to enable private instances to access the internet.
 
-    LabVpcCidr: CIDR block for the VPC.
-    PublicSubnetCidr, PublicSubnetBCidr: CIDR blocks for public subnets.
-    PrivateSubnetCidr, PrivateSubnetBCidr: CIDR blocks for private subnets.
-    AmazonLinuxAMIID: AMI ID for Amazon Linux 2.
+    Route Tables:
+        Creates public and private route tables for associating with the corresponding subnets.
+        Configures routes, directing public traffic to the internet via the internet gateway and private traffic through the NAT gateway.
 
-Resources Created
+    Security Groups:
+        Defines security groups for applications (AppSecurityGroup) and relational databases (MyDBSecurityGroup).
+        Configures ingress rules to control traffic access for the specified ports.
 
-    VPC with Internet Gateway
-        Creates a VPC with an internet gateway attached.
+    Amazon RDS (Relational Database Service):
+        Launches an RDS instance with MySQL engine, version 5.7, in the specified subnets.
+        Configures a DB subnet group for the RDS instance.
 
-    NAT Gateway
-        Creates a NAT gateway for private subnet internet access.
+    S3 Bucket:
+        Creates a private S3 bucket with the specified name and access control settings.
 
-    Public and Private Subnets
-        Creates public and private subnets in multiple availability zones.
+    EC2 Instance:
+        Launches an EC2 instance with Amazon Linux 2 AMI in the public subnet.
+        Configures the instance with a simple user data script, installing and starting an Apache web server.
 
-    Route Tables
-        Creates public and private route tables and associations.
+    SNS Topic and Subscription:
+        Establishes an SNS topic named 'MySNSTopic.'
+        Subscribes an email address ('amohamed.0816@gmail.com') to receive notifications from the SNS topic.
 
-    EC2 Instance
-        Launches an EC2 instance with a user data script.
+    CloudWatch Alarm:
+        Sets up a CloudWatch alarm monitoring the CPU utilization of the EC2 instance.
+        Configures the alarm to send notifications to the specified SNS topic when the threshold is breached.
 
-    S3 Bucket
-        Creates an S3 bucket with private access.
+Instructions for Use
 
-    RDS Instance
-        Creates an Aurora RDS instance.
+    Deploying the Template:
+        Use the AWS Management Console, AWS CLI, or other tools to deploy the CloudFormation template.
+        Define necessary parameters like VPC CIDR, subnet CIDRs, and other inputs during deployment.
 
-    Security Groups
-        Creates security groups for the EC2 instance and RDS instance.
+    Accessing Resources:
+        Access the deployed resources such as the EC2 instance, RDS instance, and S3 bucket based on your application requirements.
 
-    SNS Topic and Subscription
-        Creates an SNS topic with an email subscription.
+    Monitoring and Notifications:
+        Monitor the EC2 instance's CPU utilization through the CloudWatch alarm.
+        Receive email notifications for CPU threshold breaches through the configured SNS topic.
 
-    CloudWatch Alarm
-        Creates a CloudWatch alarm for EC2 CPU utilization.
+Important Notes
 
-Outputs
-
-    LabVPCDefaultSecurityGroup: Default security group ID for the VPC.
-    S3BucketName: Name of the S3 bucket.
-    EC2InstanceId: ID of the EC2 instance.
-    RDSInstanceEndpoint: Endpoint of the created RDS instance.
+    Ensure that AWS credentials and necessary permissions are set up for successful template deployment.
+    Customize parameters as needed for your specific use case.
+    Refer to the CloudFormation documentation for more details on template parameters and resource configurations.
 
 How to Deploy
 
