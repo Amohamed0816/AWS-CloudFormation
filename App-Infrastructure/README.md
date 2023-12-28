@@ -46,8 +46,5 @@ Contributions and improvements to this project are welcome. Feel free to open is
 
 This project is licensed under the [MIT License](LICENSE).
 
----
-
-Feel free to adjust the wording or structure to better suit your preferences and the specific details of your project.
 
 
