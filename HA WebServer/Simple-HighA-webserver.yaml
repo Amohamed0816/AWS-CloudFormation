@@ -1,0 +1,354 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+
+# Resources section defines the AWS resources to be created
+Resources:
+  # VPC definition
+  MyVPC:
+    Type: "AWS::EC2::VPC"
+    Properties:
+      CidrBlock: "10.0.0.0/16"
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: "Name"
+          Value: "MyVPC"
+
+# Define the ALB WebACL
+  MyWebACL:
+    Type: "AWS::WAFv2::WebACL"
+    Properties:
+      DefaultAction:
+        Allow: {}
+      VisibilityConfig:
+        SampledRequestsEnabled: true
+        CloudWatchMetricsEnabled: true
+        MetricName: "MyWebACLMetric"  # Replace with a suitable metric name
+      Name: "MyWebACL"
+      Description: "My WebACL for AWS WAF"
+      Scope: "REGIONAL"  # Adjust the scope based on your use case
+      Rules:
+        - Name: "BlockRequestsContainingSQL"
+          Priority: 1
+          Action:
+            Block: {}
+          Statement:
+            ByteMatchStatement:
+              FieldToMatch:
+                AllQueryArguments: {}
+              TextTransformations:
+                - Priority: 0
+                  Type: "NONE"
+              PositionalConstraint: "EXACTLY"
+              SearchString: "sql"  # Modify this string based on your needs
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: "MyWebACLMetricRule"  # Replace with a suitable metric name
+
+
+# Define the public route table
+  PublicRouteTable:
+    Type: "AWS::EC2::RouteTable"
+    Properties:
+      VpcId: !Ref MyVPC
+
+  # Associate the public route table with the public subnet
+  PublicSubnetRoute:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet
+
+  # Create a default route in the public route table directing traffic to the NAT Gateway
+  PublicRoute:
+    Type: "AWS::EC2::Route"
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: "0.0.0.0/0"
+      NatGatewayId: !Ref NatGateway
+  
+    # Define the first private route table for Subnet A
+  PrivateRouteTableA:
+    Type: "AWS::EC2::RouteTable"
+    Properties:
+      VpcId: !Ref MyVPC
+
+  # Define the second private route table for Subnet B
+  PrivateRouteTableB:
+    Type: "AWS::EC2::RouteTable"
+    Properties:
+      VpcId: !Ref MyVPC
+
+  # Associate the first private route table with Subnet A
+  PrivateSubnetARoute:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties:
+      RouteTableId: !Ref PrivateRouteTableA
+      SubnetId: !Ref PrivateSubnetA
+
+  # Associate the second private route table with Subnet B
+  PrivateSubnetBRoute:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties:
+      RouteTableId: !Ref PrivateRouteTableB
+      SubnetId: !Ref PrivateSubnetB
+
+  # Create an S3 VPC endpoint and associate it with both private route tables
+  MyS3VpcEndpoint:
+    Type: "AWS::EC2::VPCEndpoint"
+    Properties:
+      RouteTableIds:
+        - !Ref PrivateRouteTableA
+        - !Ref PrivateRouteTableB
+      ServiceName: !Sub "com.amazonaws.${AWS::Region}.s3"
+      VpcId: !Ref MyVPC
+
+  # Public subnets in Availability Zone A
+  PublicSubnet:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      AvailabilityZone: "us-east-1a"
+      CidrBlock: "10.0.0.0/24"
+      VpcId: !Ref MyVPC
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: "Name"
+          Value: "PublicSubnet"
+
+  # Private subnets in Availability Zone A
+  PrivateSubnetA:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      AvailabilityZone: "us-east-1a"
+      CidrBlock: "10.0.1.0/24"
+      VpcId: !Ref MyVPC
+      Tags:
+        - Key: "Name"
+          Value: "PrivateSubnetA"
+
+  # Private subnets in Availability Zone B
+  PrivateSubnetB:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      AvailabilityZone: "us-east-1b"
+      CidrBlock: "10.0.2.0/24"
+      VpcId: !Ref MyVPC
+      Tags:
+        - Key: "Name"
+          Value: "PrivateSubnetB"
+
+  # Internet Gateway definition
+  InternetGateway:
+    Type: "AWS::EC2::InternetGateway"
+    Properties:
+      Tags:
+        - Key: "Name"
+          Value: "InternetGateway"
+
+  # Attach Internet Gateway to VPC
+  AttachGateway:
+    Type: "AWS::EC2::VPCGatewayAttachment"
+    Properties:
+      VpcId: !Ref MyVPC
+      InternetGatewayId: !Ref InternetGateway
+
+  # NAT Gateway definition
+  NatGateway:
+    Type: "AWS::EC2::NatGateway"
+    Properties:
+      AllocationId: !GetAtt ElasticIP.AllocationId
+      SubnetId: !Ref PublicSubnet
+
+  # Elastic IP definition for NAT Gateway
+  ElasticIP:
+    Type: "AWS::EC2::EIP"
+    Properties:
+      Domain: "vpc"
+
+  # Security Group for EC2 instances
+  MySecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    DependsOn: MyVPC
+    Properties:
+      GroupName: App
+      GroupDescription: Enable access to App
+      VpcId: !Ref MyVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: App
+
+# Define the security group for the RDS instance
+  MyDBSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    DependsOn: MyVPC
+    Properties:
+      GroupDescription: 'Security group for RDS instance'
+      VpcId: !Ref MyVPC  # Reference to your VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          CidrIp: '0.0.0.0/0'  # Allow traffic from any IP (adjust for security)
+      Tags:
+        - Key: Name
+          Value: Database Security
+
+  # Launch Configuration for EC2 instances
+  WebServerLaunchConfiguration:
+    Type: "AWS::AutoScaling::LaunchConfiguration"
+    Properties:
+      ImageId: "ami-00b8917ae86a424c9"  # Specify the AMI ID
+      InstanceType: "t2.micro"  # Specify the instance type
+      KeyName: "WebServerKey"
+      SecurityGroups: 
+        - !Ref MySecurityGroup
+      UserData: !Base64
+        Fn::Sub: |
+          #!/bin/bash
+          # Custom user data script for EC2 instances
+      Tags:
+        - Key: Name
+          Value: Web Server
+
+  # Auto Scaling Group for EC2 instances
+  WebServerAutoScalingGroup:
+    Type: "AWS::AutoScaling::AutoScalingGroup"
+    Properties:
+      VPCZoneIdentifier: 
+        - !Ref PrivateSubnetA
+        - !Ref PrivateSubnetB
+      LaunchConfigurationName: !Ref WebServerLaunchConfiguration
+      MinSize: 2
+      MaxSize: 4
+      DesiredCapacity: 2
+      HealthCheckType: "EC2"
+      HealthCheckGracePeriod: 300
+
+  # RDS Database definition
+  MyRDSDB:
+    Type: "AWS::RDS::DBInstance"
+    Properties:
+      AllocatedStorage: "20"
+      DBInstanceClass: "db.t2.micro"
+      Engine: "mysql"
+      EngineVersion: "5.7"
+      MasterUsername: "admin"
+      MasterUserPassword: "password"
+      MultiAZ: true
+      DBSubnetGroupName: !Ref MyDBSubnetGroup
+      VPCSecurityGroups: 
+        - !Ref MyDBSecurityGroup
+
+  # RDS Subnet Group definition
+  MyDBSubnetGroup:
+    Type: "AWS::RDS::DBSubnetGroup"
+    Properties:
+      DBSubnetGroupDescription: "Subnet group for RDS"
+      SubnetIds: 
+        - !Ref PrivateSubnetA
+        - !Ref PrivateSubnetB
+
+  # Application Load Balancer definition
+
+  MyLoadBalancer:
+    Type: "AWS::ElasticLoadBalancingV2::LoadBalancer"
+    Properties:
+      Subnets: 
+        - !Ref PrivateSubnetA
+        - !Ref PrivateSubnetB
+      SecurityGroups: 
+        - !Ref MySecurityGroup
+      Scheme: "internal" # Set to "internal" for a private ALB
+      LoadBalancerAttributes:
+        - Key: idle_timeout.timeout_seconds
+          Value: "60"
+      Tags:
+        - Key: Name
+          Value: "MyLoadBalancer"
+      LoadBalancerName: "my-load-balancer"
+      IpAddressType: ipv4
+
+
+# S3 Bucket
+  MyS3Bucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: my-ahmed-s3-bucket-123
+      AccessControl: Private
+
+# Outputs
+Outputs:
+
+  VPCId:
+    Description: "ID of the VPC"
+    Value: !Ref MyVPC
+
+  PublicRouteTableId:
+    Description: "ID of the Public Route Table"
+    Value: !Ref PublicRouteTable
+
+  PrivateRouteTableAId:
+    Description: "ID of the Private Route Table A"
+    Value: !Ref PrivateRouteTableA
+
+  PrivateRouteTableBId:
+    Description: "ID of the Private Route Table B"
+    Value: !Ref PrivateRouteTableB
+
+  PublicSubnetId:
+    Description: "ID of Public Subnet"
+    Value: !Ref PublicSubnet
+
+  PrivateSubnetAId:
+    Description: "ID of Private Subnet A"
+    Value: !Ref PrivateSubnetA
+
+  PrivateSubnetBId:
+    Description: "ID of Private Subnet B"
+    Value: !Ref PrivateSubnetB
+
+  InternetGatewayId:
+    Description: "ID of Internet Gateway"
+    Value: !Ref InternetGateway
+
+  NatGatewayId:
+    Description: "ID of NAT Gateway"
+    Value: !Ref NatGateway
+
+  ElasticIPId:
+    Description: "ID of Elastic IP"
+    Value: !Ref ElasticIP
+
+  MySecurityGroupId:
+    Description: "ID of Security Group"
+    Value: !Ref MySecurityGroup
+
+  MyDBSecurityGroupId:
+    Description: "ID of Security Group"
+    Value: !Ref MyDBSecurityGroup
+
+  WebServerAutoScalingGroupId:
+    Description: "ID of EC2 Auto Scaling Group"
+    Value: !Ref WebServerAutoScalingGroup
+
+  MyRDSDBId:
+    Description: "ID of RDS Database"
+    Value: !Ref MyRDSDB
+
+  MyDBSubnetGroupId:
+    Description: "ID of RDS Subnet Group"
+    Value: !Ref MyDBSubnetGroup
+
+  S3BucketName:
+    Value: !Ref MyS3Bucket
+    Description: 'The name of the S3 bucket'
+
+  MyLoadBalancerId:
+    Description: "ID of Application Load Balancer"
+    Value: !Ref MyLoadBalancer
